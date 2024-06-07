@@ -1,14 +1,17 @@
+# Import necessary modules
 from openai import OpenAI
 import random
-import universities
+import universities  # Assuming this is a module containing university data
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize OpenAI client
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 
 
-#generate random personal profiles
+
+# Generate random personal profiles
 def generate_personal_info():
     study_levels = ["undergraduate", "graduate"]
     study_level = random.choice(study_levels)
@@ -29,6 +32,7 @@ def generate_personal_info():
         "desired_province": desired_province,
     }
 
+# Create a dictionary to store conversations
 conversations = {}
 
 
@@ -45,9 +49,6 @@ def start_new_conversation():
         "messages": []
     }
     return conversation_id
-
-
-
 
 
 
@@ -153,6 +154,8 @@ def generate_recommendations(conversation_id):
 
 
 
+
+
 # A simple CLI for testing the chatbot interaction directly from the terminal
 if __name__ == "__main__":
     print("Chatbot: Hello, I'm here to help you find the best university for you. What would you like to know?")
@@ -173,13 +176,17 @@ if __name__ == "__main__":
 
 
 
-#run testing for chat reponse
+# Function to get GPT-3.5 response
 def get_chatgpt_response(prompt):
     response = client.Completion.create(
         model="text-davinci-003",
         prompt=prompt,
         max_tokens=150
     )
-    return response.choices[0].text.strip()
+    return response.choices
+
+
+
+
 
 
