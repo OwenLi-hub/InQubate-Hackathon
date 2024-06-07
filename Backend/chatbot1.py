@@ -1,23 +1,17 @@
 from openai import OpenAI
 import random
+import universities
 import os
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize OpenAI client
 
-# Sample data for universities
-universities = [
-    {"name": "University of Toronto", "location": "Toronto, ON", "programs": ["Engineering", "Computer Science", "Business"], "ranking": 1, "url": "https://www.utoronto.ca/", "admission_average": "88%", "IB_admission_average": 36, "IELTS_admission_score": 6.5},
-    {"name": "University of British Columbia", "location": "Vancouver, BC", "programs": ["Engineering", "Environmental Science", "Arts"], "ranking": 2, "url": "https://www.ubc.ca/", "admission_average": "85%", "IB_admission_average": 34, "IELTS_admission_score": 6.5},
-    {"name": "McGill University", "location": "Montreal, QC", "programs": ["Medicine", "Law", "Business"], "ranking": 3, "url": "https://www.mcgill.ca/", "admission_average": "90%", "IB_admission_average": 38, "IELTS_admission_score": 7.0},
-    {"name": "University of Alberta", "location": "Edmonton, AB", "programs": ["Nursing", "Pharmacy", "Agriculture"], "ranking": 4, "url": "https://www.ualberta.ca/", "admission_average": "82%", "IB_admission_average": 33, "IELTS_admission_score": 6.5},
-    {"name": "University of Waterloo", "location": "Waterloo, ON", "programs": ["Engineering", "Computer Science", "Mathematics"], "ranking": 5, "url": "https://uwaterloo.ca/", "admission_average": "88%", "IB_admission_average": 36, "IELTS_admission_score": 6.5},
-]
 
 
 
-
-# Randomly generates information for the applicant
+#generate random personal profiles
 def generate_personal_info():
+    study_levels = ["undergraduate", "graduate"]
+    study_level = random.choice(study_levels)
     grade_average = round(random.uniform(70, 100), 2)  # Random grade average between 70 and 100
     ib_points = random.randint(24, 45)  # Random IB points between 24 and 45
     ielts_points = round(random.uniform(5.0, 9.0), 1)  # Random IELTS points between 5.0 and 9.0
@@ -27,6 +21,7 @@ def generate_personal_info():
     desired_province = random.choice(desired_provinces)
 
     return {
+        "study_level": study_level,
         "grade_average": grade_average,
         "ib_points": ib_points,
         "ielts_points": ielts_points,
@@ -35,6 +30,11 @@ def generate_personal_info():
     }
 
 conversations = {}
+
+
+
+
+
 
 # Initializes a new conversation
 def start_new_conversation():
@@ -51,14 +51,44 @@ def start_new_conversation():
 
 
 
+
+
+
 # Sends user input to OpenAI's GPT-3.5 and retrieves the response
 def chat_with_gpt(user_input, conversation_id):
     conversation = conversations[conversation_id]
     info = conversation['info']
-    
-    if "grade average" in user_input.lower():
+
+    # Ask about study level if not already provided
+    if 'study_level' not in info:
+        if 'undergraduate' in user_input.lower():
+            info['study_level'] = 'undergraduate'
+            response_text = "Are you an IB student? (yes or no)"
+        elif 'graduate' in user_input.lower():
+            info['study_level'] = 'graduate'
+            response_text = "Great! What is your grade average?"
+        else:
+            response_text = "Are you pursuing undergraduate or graduate studies?"
+        return response_text
+
+    # Ask about IB status if pursuing undergraduate studies
+    if info['study_level'] == 'undergraduate' and 'ib_student' not in info:
+        if 'yes' in user_input.lower():
+            info['ib_student'] = True
+            response_text = "Great! What are your IB points?"
+        elif 'no' in user_input.lower():
+            info['ib_student'] = False
+            response_text = "Great! What is your grade average?"
+        else:
+            response_text = "Are you an IB student? (yes or no)"
+        return response_text
+
+    # Handle specific questions
+    if "grade average" in user_input.lower() and 'grade_average' not in info:
+        info['grade_average'] = float(user_input.split()[-1])
         response_text = f"My grade average is {info['grade_average']}."
-    elif "ib points" in user_input.lower():
+    elif "ib points" in user_input.lower() and 'ib_points' not in info:
+        info['ib_points'] = int(user_input.split()[-1])
         response_text = f"I have {info['ib_points']} IB points."
     elif "ielts points" in user_input.lower():
         response_text = f"My IELTS points are {info['ielts_points']}."
@@ -80,6 +110,9 @@ def chat_with_gpt(user_input, conversation_id):
         conversation['messages'].append({"role": "assistant", "content": response_text})
     
     return response_text
+
+
+
 
 
 
@@ -118,6 +151,8 @@ def generate_recommendations(conversation_id):
 
 
 
+
+
 # A simple CLI for testing the chatbot interaction directly from the terminal
 if __name__ == "__main__":
     print("Chatbot: Hello, I'm here to help you find the best university for you. What would you like to know?")
@@ -138,7 +173,7 @@ if __name__ == "__main__":
 
 
 
-
+#run testing for chat reponse
 def get_chatgpt_response(prompt):
     response = client.Completion.create(
         model="text-davinci-003",
