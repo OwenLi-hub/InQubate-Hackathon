@@ -1,2 +1,1 @@
-# InQubate-Hackathon
-InQubate Hackathon competition
+Creating a chatbot to train students and professionals in the medical field.
