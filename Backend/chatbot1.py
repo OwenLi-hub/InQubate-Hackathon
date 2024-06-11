@@ -13,23 +13,17 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Generate random personal profiles
 def generate_personal_info():
-    study_levels = ["undergraduate", "graduate"]
-    study_level = random.choice(study_levels)
     grade_average = round(random.uniform(70, 100), 2)  # Random grade average between 70 and 100
     ib_points = random.randint(24, 45)  # Random IB points between 24 and 45
     ielts_points = round(random.uniform(5.0, 9.0), 1)  # Random IELTS points between 5.0 and 9.0
     desired_programs = ["Engineering", "Computer Science", "Business", "Medicine", "Law", "Nursing", "Pharmacy", "Agriculture", "Environmental Science", "Arts", "Mathematics"]
     desired_program = random.choice(desired_programs)
-    desired_provinces = ["ON", "BC", "QC", "AB", "NS", "MB", "SK", "NB", "NL", "PE", "NT", "NU", "YT"]
-    desired_province = random.choice(desired_provinces)
 
     return {
-        "study_level": study_level,
         "grade_average": grade_average,
         "ib_points": ib_points,
         "ielts_points": ielts_points,
         "desired_program": desired_program,
-        "desired_province": desired_province,
     }
 
 # Create a dictionary to store conversations
