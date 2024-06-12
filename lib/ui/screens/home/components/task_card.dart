@@ -30,6 +30,9 @@ class TaskCard extends StatelessWidget {
     required this.onPressedTask,
     required this.onPressedContributors,
     required this.onPressedComments,
+    required this.otherUse,
+    required this.subtitle,
+    this.width,
     super.key,
   });
 
@@ -39,11 +42,15 @@ class TaskCard extends StatelessWidget {
   final Function() onPressedTask;
   final Function() onPressedContributors;
   final Function() onPressedComments;
+  final bool otherUse;
+  final String subtitle;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
+      width: width,
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(kBorderRadius),
@@ -55,8 +62,10 @@ class TaskCard extends StatelessWidget {
               padding: const EdgeInsets.all(5),
               child: TaskTile(
                 dotColor: data.type.getColor(),
+                showDelete: otherUse,
                 title: data.title,
-                subtitle: (data.dueDay < 0)
+                subtitle: otherUse ? subtitle :
+                (data.dueDay < 0)
                     ? "Late in ${data.dueDay * -1} days"
                     : "Due in ${(data.dueDay > 1) ? "${data.dueDay} days" : "today"}",
                 onPressedMore: onPressedMore,
@@ -124,12 +133,14 @@ class TaskTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onPressedMore,
+    required this.showDelete
   });
 
   final Color dotColor;
   final String title;
   final String subtitle;
   final Function() onPressedMore;
+  final bool showDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +157,7 @@ class TaskTile extends StatelessWidget {
               taskDot(dotColor),
               const SizedBox(width: 8),
               Expanded(child: taskTitle(title)),
-              _moreButton(onPressed: onPressedMore),
+              _moreButton(onPressed: onPressedMore, showDelete: showDelete),
             ],
           ),
         ),
@@ -184,11 +195,11 @@ class TaskTile extends StatelessWidget {
     );
   }
 
-  Widget _moreButton({required Function() onPressed}) {
+  Widget _moreButton({required Function() onPressed, required bool showDelete}) {
     return IconButton(
       iconSize: 20,
       onPressed: onPressed,
-      icon: const Icon(Icons.more_vert_rounded),
+      icon: showDelete ? const Icon(Icons.delete) : const Icon(Icons.more_vert_rounded),
       splashRadius: 20,
     );
   }

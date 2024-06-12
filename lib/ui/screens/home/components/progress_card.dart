@@ -56,7 +56,7 @@ class ProgressCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "You Have ${data.totalUndone} Undone Tasks",
+                  "You Have ${data.totalUndone} recent Tasks",
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 Text(

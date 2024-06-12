@@ -14,7 +14,7 @@ class WelcomeImage extends StatelessWidget {
     return Column(
       children: [
         const Text(
-          "WELCOME TO EduGlobe",
+          "WELCOME TO Simplifile",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         Row(

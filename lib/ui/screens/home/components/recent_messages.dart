@@ -16,7 +16,7 @@ class RecentMessages extends StatelessWidget {
         Icon(EvaIcons.messageCircle, color: Theme.of(context).primaryColor),
         const SizedBox(width: 10),
         Text(
-          "EduGlobe Community",
+          "Simplifile Community",
           style: TextStyle(color: Theme.of(context).primaryColor),
         ),
         const Spacer(),

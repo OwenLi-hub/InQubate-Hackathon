@@ -1,15 +1,21 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eduglobe_app/constants.dart';
+import 'package:eduglobe_app/ui/screens/applications/applications_screen.dart';
 import 'package:eduglobe_app/ui/screens/community/forums_screen.dart';
 import 'package:eduglobe_app/ui/screens/home/components/university_card.dart';
 import 'package:eduglobe_app/ui/screens/universities/universities_screen.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../model/user_model.dart';
 import '../../../util/helpers/task_type.dart';
+import '../../../util/service/application_service.dart';
 import '../../components/get_premium_card.dart';
 import '../../components/responsive_builder.dart';
 import '../../components/upgrade_premium_card.dart';
@@ -35,12 +41,87 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  String _username = '';
+  String _email = '';
+
   bool showDashboardScreen = true;
   bool showUniScreen = false;
   bool showAppScreen = false;
   bool showVisaScreen = false;
   bool showCommScreen = false;
   bool showSettScreen = false;
+
+  int totalTasks = 0;
+
+  final User? _user = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirestoreService _firestoreService = FirestoreService();
+  List<Map<String, dynamic>> recentTasks = [];
+
+  bool _isLoading = true;
+
+  List _savedUniversities = [];
+  List<Map<String, dynamic>> applications = [];
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserProfile();
+    _fetchActiveUniversities();
+    fetchRecentTasks();
+  }
+
+  Future<void> fetchRecentTasks() async {
+    var mostRecentApp = await _firestoreService.fetchMostRecentApplication();
+    if (mostRecentApp != null) {
+      var tasks = List<Map<String, dynamic>>.from(mostRecentApp['tasks']);
+      setState(() {
+        recentTasks = tasks.take(3).toList();
+        totalTasks = tasks.length * _savedUniversities.length;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+
+  Future<void> _fetchActiveUniversities() async {
+    try {
+      final userUniversities = await _firestore
+          .collection('users')
+          .doc(_user?.uid)
+          .collection('selectedUniversities')
+          .get();
+
+      setState(() {
+        _savedUniversities =
+            userUniversities.docs.map((doc) => doc.data()).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      Fluttertoast.showToast(msg: 'Error fetching universities: $e');
+    }
+  }
+
+  Future<void> fetchUserProfile() async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(_user?.uid).get();
+      setState(() {
+        _username = userDoc['firstName'] + ' ' +userDoc['lastName'];
+        _email = userDoc['email'];
+      });
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error fetching user profile: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   data: UniversityCardData(
                     percent: .3,
                     projectImage: const AssetImage("assets/images/logo.png"),
-                    projectName: "EduGlobe",
+                    projectName: "Simplifile",
                     releaseTime: DateTime.now(),
                   ),
                 ),
@@ -363,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   percent: .3,
                                   projectImage: const AssetImage(
                                       "assets/images/logo.png"),
-                                  projectName: "EduGlobe",
+                                  projectName: "Simplifile",
                                   releaseTime: DateTime.now(),
                                 ),
                               ),
@@ -521,7 +602,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       _buildHeader(),
                                       const SizedBox(height: kSpacing * 2),
                                       const CommunityForumsScreen()
-
                                     ],
                                   )
                                 : showAppScreen
@@ -531,6 +611,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         children: [
                                           const SizedBox(height: kSpacing),
                                           _buildHeader(),
+                                          const SizedBox(height: kSpacing * 2),
+                                          const ApplicationsScreen(),
                                         ],
                                       )
                                     :
@@ -544,39 +626,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                           const SizedBox(height: kSpacing * 2),
                                           _buildTaskOverview(
                                             data: [
-                                              const TaskCardData(
+                                              for (var task in recentTasks)
+                                              TaskCardData(
                                                 title:
-                                                    "Get Letters of Recommendations",
+                                                    task['title'],
                                                 dueDay: 2,
                                                 totalComments: 50,
-                                                type: TaskType.todo,
+                                                type: TaskType.inProgress,
                                                 totalContributors: 30,
                                                 profileContributors: [
-                                                  AssetImage(
-                                                      "assets/images/logo.png"),
-                                                ],
-                                              ),
-                                              const TaskCardData(
-                                                title:
-                                                    "Fill out Application Form for Queen's University",
-                                                dueDay: -1,
-                                                totalComments: 50,
-                                                totalContributors: 34,
-                                                type: TaskType.inProgress,
-                                                profileContributors: [
-                                                  AssetImage(
-                                                      "assets/images/logo.png"),
-                                                ],
-                                              ),
-                                              const TaskCardData(
-                                                title:
-                                                    "Create Application Profile for Queen's University",
-                                                dueDay: 1,
-                                                totalComments: 50,
-                                                totalContributors: 34,
-                                                type: TaskType.done,
-                                                profileContributors: [
-                                                  AssetImage(
+                                                  const AssetImage(
                                                       "assets/images/logo.png"),
                                                 ],
                                               ),
@@ -590,33 +649,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                           const SizedBox(height: kSpacing * 2),
                                           _buildActiveProject(
                                             data: [
-                                              UniversityCardData(
-                                                percent: .3,
-                                                projectImage: const AssetImage(
-                                                    "assets/images/logo.png"),
-                                                projectName:
-                                                    "Queen's University",
-                                                releaseTime: DateTime.now().add(
-                                                    const Duration(days: 130)),
-                                              ),
-                                              UniversityCardData(
-                                                percent: .5,
-                                                projectImage: const AssetImage(
-                                                    "assets/images/logo.png"),
-                                                projectName:
-                                                    "Ryerson University",
-                                                releaseTime: DateTime.now().add(
-                                                    const Duration(days: 140)),
-                                              ),
-                                              UniversityCardData(
-                                                percent: .8,
-                                                projectImage: const AssetImage(
-                                                    "assets/images/logo.png"),
-                                                projectName:
-                                                    "University of Toronto",
-                                                releaseTime: DateTime.now().add(
-                                                    const Duration(days: 100)),
-                                              ),
+                                              for (var uni
+                                                  in _savedUniversities.length >
+                                                          3
+                                                      ? _savedUniversities
+                                                          .sublist(0, 3)
+                                                      : _savedUniversities)
+                                                UniversityCardData(
+                                                  percent: .3,
+                                                  subtitle: uni['program'],
+                                                  projectImage: const AssetImage(
+                                                      "assets/images/logo.png"),
+                                                  projectName:
+                                                      uni['university'],
+                                                  releaseTime: DateTime.now()
+                                                      .add(const Duration(
+                                                          days: 130)),
+                                                ),
                                             ],
                                             crossAxisCount: 6,
                                             crossAxisCellCount:
@@ -634,10 +683,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const SizedBox(height: kSpacing / 2),
                     _buildProfile(
-                        data: const Profile(
-                      photo: AssetImage("assets/images/logo.png"),
-                      name: "James Doe",
-                      email: "jamesdoe@gmail.com",
+                        data: Profile(
+                      photo: const AssetImage("assets/images/logo.png"),
+                      name: _username,
+                      email: _email,
                     )),
                     const Divider(thickness: 1),
                     // const SizedBox(height: kSpacing),
@@ -715,23 +764,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 Flexible(
                   flex: 5,
                   child: ProgressCard(
-                    data: const ProgressCardData(
-                      totalUndone: 10,
-                      totalTaskInProgress: 2,
+                    data: ProgressCardData(
+                      totalUndone: recentTasks.length,
+                      totalTaskInProgress: totalTasks,
                     ),
                     onPressedCheck: () {},
                   ),
                 ),
                 const SizedBox(width: kSpacing / 2),
-                const Flexible(
+                Flexible(
                   flex: 4,
                   child: ProgressReportCard(
                     data: ProgressReportCardData(
                       title: "Overall Progress",
-                      doneTask: 5,
+                      doneTask: 0,
                       percent: .3,
-                      task: 3,
-                      undoneTask: 10,
+                      task: recentTasks.length,
+                      undoneTask: recentTasks.length,
                     ),
                   ),
                 ),
@@ -789,6 +838,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressedTask: () {},
                 onPressedContributors: () {},
                 onPressedComments: () {},
+                otherUse: false,
+                subtitle: '',
               );
       },
       staggeredTileBuilder: (int index) =>
@@ -814,6 +865,21 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: kSpacing,
           shrinkWrap: true,
           itemBuilder: (context, index) {
+            if (_savedUniversities.isEmpty) {
+              return Center(
+                child: SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        showUniScreen = true;
+                      });
+                    },
+                    child: const Text('Start New Search'),
+                  ),
+                ),
+              );
+            }
             return UniversityCard(data: data[index]);
           },
           staggeredTileBuilder: (int index) =>

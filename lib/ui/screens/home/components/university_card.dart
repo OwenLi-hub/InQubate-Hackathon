@@ -8,12 +8,14 @@ class UniversityCardData {
   final ImageProvider projectImage;
   final String projectName;
   final DateTime releaseTime;
+  final String? subtitle;
 
   const UniversityCardData({
     required this.projectImage,
     required this.projectName,
     required this.releaseTime,
     required this.percent,
+    this.subtitle
   });
 }
 
@@ -41,7 +43,7 @@ class UniversityCard extends StatelessWidget {
             children: [
               _TitleText(data.projectName),
               const SizedBox(height: 5),
-              const _SubtitleText("Revolutionising Education")
+              _SubtitleText(data.subtitle ?? "Revolutionising Education")
               // Row(
               //   children: [
               //     const _SubtitleText("Release time : "),

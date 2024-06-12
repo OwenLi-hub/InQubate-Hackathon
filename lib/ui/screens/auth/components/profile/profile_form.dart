@@ -30,7 +30,7 @@ class _ProfileFormState extends State<ProfileForm> {
 
   // Sample data for dropdowns
   final List<String> _academicBackgrounds = ['High School', 'Undergraduate', 'Graduate', 'PhD'];
-  final List<String> _studyPreferences = ['Engineering', 'Business', 'Arts', 'Sciences'];
+  final List<String> _studyPreferences = ["Engineering", "Computer Science", "Business", "Medicine", "Law", "Nursing", "Pharmacy", "Agriculture", "Environmental Science", "Arts", "Mathematics"];
   final List<String> _countriesOfInterest = ['Canada', 'USA', 'UK', 'Australia'];
   final List<String> _languageProficiencies = ['English', 'French', 'Spanish', 'German'];
   final List<String> _budgetRanges = ['< \$10,000', '\$10,000 - \$20,000', '\$20,000 - \$30,000', '> \$30,000'];

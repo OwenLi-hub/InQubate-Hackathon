@@ -99,7 +99,7 @@ class _CommunityForumsScreenState extends State<CommunityForumsScreen> {
                     return ForumTile(
                       forum: Topic(
                         author: Author(
-                          name: 'EduGlobe',
+                          name: 'Simplifile',
                           imageUrl: 'assets/images/logo.png',
                         ),
                         title: topic?['title'],
